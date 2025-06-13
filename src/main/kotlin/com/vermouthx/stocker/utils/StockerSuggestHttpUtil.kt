@@ -10,8 +10,88 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.util.EntityUtils
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object StockerSuggestHttpUtil {
+    // 上海期货交易所的期货品种和代码
+    val shfeFutures = mapOf(
+        Pair("铜", "CU"),
+        Pair("铝", "AL"),
+        Pair("锌", "ZN"),
+        Pair("铅", "PB"),
+        Pair("镍", "NI"),
+        Pair("锡", "SN"),
+        Pair("黄金", "AU"),
+        Pair("白银", "AG"),
+        Pair("螺纹钢", "RB"),
+        Pair("线材", "WR"),
+        Pair("热卷", "HC"),
+        Pair("不锈钢", "SS"),
+        Pair("沥青", "BU"),
+        Pair("纸浆", "SP")
+    )
+    // 上期能源的期货品种和代码
+    var shIneFutures = mapOf(
+        Pair("原油", "SC"),
+        Pair("集运", "EC"),
+        Pair("国际铜", "BC"),
+        Pair("低硫燃油", "LU"),
+        Pair("20号胶", "NR")
+    )
+
+    // 郑州商品交易所的期货品种和代码
+    val czceFutures = mapOf(
+        Pair("棉花", "CF"),
+        Pair("白糖", "SR"),
+        Pair("PTA", "TA"),
+        Pair("甲醇", "MA"),
+        Pair("玻璃", "FG"),
+        Pair("纯碱", "SA"),
+        Pair("苹果", "AP"),
+        Pair("红枣", "CJ"),
+        Pair("尿素", "UR"),
+        Pair("菜籽油", "OI"),
+        Pair("菜籽粕", "RM"),
+        Pair("动力煤", "ZC"),
+        Pair("硅铁", "SF"),
+        Pair("锰硅", "SM"),
+        Pair("鸡蛋", "JD"),
+        Pair("花生", "PK"),
+        Pair("棉纱", "CY")
+    )
+
+    // 大连商品交易所的期货品种和代码
+    val dceFutures = mapOf(
+        Pair("玉米", "C"),
+        Pair("玉米淀粉", "CS"),
+        Pair("豆一", "A"),
+        Pair("豆二", "B"),
+        Pair("豆粕", "M"),
+        Pair("豆油", "Y"),
+        Pair("棕榈油", "P"),
+        Pair("聚乙烯", "L"),
+        Pair("聚氯乙烯", "V"),
+        Pair("聚丙烯", "PP"),
+        Pair("铁矿石", "I"),
+        Pair("焦煤", "JM"),
+        Pair("焦炭", "J"),
+        Pair("乙二醇", "EG"),
+        Pair("LPG", "PG")
+    )
+
+    // 中国金融期货交易所的期货品种和代码
+//    val cffexFutures = mapOf(
+//        Pair("沪深300", "IF"),
+//        Pair("中证500", "IC"),
+//        Pair("上证50", "IH"),
+//        Pair("十债", "T"),
+//        Pair("五债", "TF"),
+//        Pair("二债", "TS")
+//    )
+
+    // 汇总所有期货品种和代码
+    private var futures: Map<String,String> = shfeFutures + shIneFutures + czceFutures + dceFutures
 
     private val log = Logger.getInstance(javaClass)
 
@@ -24,6 +104,10 @@ object StockerSuggestHttpUtil {
     }
 
     fun suggest(key: String, provider: StockerQuoteProvider): List<StockerSuggestion> {
+        var list = parseQhSuggestion(key)
+        if(list.size > 0){
+            return list
+        }
         val url = "${provider.suggestHost}$key"
         val httpGet = HttpGet(url)
         if (provider == StockerQuoteProvider.SINA) {
@@ -47,6 +131,40 @@ object StockerSuggestHttpUtil {
             log.warn(e)
             emptyList()
         }
+    }
+
+    private fun parseQhSuggestion(key: String) :List<StockerSuggestion> {
+        val result = mutableListOf<StockerSuggestion>()
+        for (entry in futures) {
+            if(key == entry.key){
+                var monthList = generateYearMonthList()
+                result.add(StockerSuggestion(futures[key].toString() + "0",  key + "连续",StockerMarketType.QH))
+                for (month in monthList) {
+                    result.add(StockerSuggestion(futures[key].toString() + "" + month,  key + "" + month,StockerMarketType.QH))
+                }
+                break
+            }
+        }
+        return result;
+    }
+
+    fun generateYearMonthList(): List<String> {
+        // 获取当前的日期
+        val currentDate = LocalDate.now()
+        // 准备一个列表来存储12个月的年月字符串
+        val yearMonthList = mutableListOf<String>()
+        // 日期格式化器，用于获取年份后两位和月份
+        val formatter = DateTimeFormatter.ofPattern("yyMM")
+        // 生成从当前月开始的12个月
+        for (i in 0 until 12) {
+            // 计算当前日期之后的月份
+            val futureDate = currentDate.plusMonths(i.toLong())
+            // 将日期格式化为特定字符串
+            val formattedDate = futureDate.format(formatter)
+            // 将生成的字符串加入列表
+            yearMonthList.add(formattedDate)
+        }
+        return yearMonthList
     }
 
     private fun parseSinaSuggestion(responseText: String): List<StockerSuggestion> {
@@ -85,11 +203,8 @@ object StockerSuggestHttpUtil {
                         )
                     }
                 }
-
-                "31" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.HKStocks))
-                "41" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.USStocks))
-                "71" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.Crypto))
                 "81" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.AShare))
+                "87" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.QH))
             }
         }
         return result
@@ -113,9 +228,6 @@ object StockerSuggestHttpUtil {
             when (type) {
                 "sz", "sh" -> result.add(StockerSuggestion(type.uppercase() + code, name, StockerMarketType.AShare))
 
-                "hk" -> result.add(StockerSuggestion(code, name, StockerMarketType.HKStocks))
-
-                "us" -> result.add(StockerSuggestion(code.split(".")[0].uppercase(), name, StockerMarketType.USStocks))
             }
         }
         return result

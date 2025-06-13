@@ -19,17 +19,14 @@ public class StockerActionUtil {
                 switch (market) {
                     case AShare:
                         return setting.getAShareList().add(code);
-                    case HKStocks:
-                        return setting.getHkStocksList().add(code);
-                    case USStocks:
-                        return setting.getUsStocksList().add(code);
-                    case Crypto:
-                        return setting.getCryptoList().add(code);
+                    case QH:
+                        return setting.getQhList().add(code);
                 }
             } else {
                 String errMessage = fullName + " is not supported.";
                 String errTitle = "Not Supported Stock";
                 Messages.showErrorDialog(project, errMessage, errTitle);
+                removeStock(market, suggest);
                 return false;
             }
         }
@@ -45,14 +42,9 @@ public class StockerActionUtil {
             case AShare:
                 publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_CN_QUOTE_DELETE_TOPIC);
                 break;
-            case HKStocks:
-                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_HK_QUOTE_DELETE_TOPIC);
+            case QH:
+                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.QH_QUOTE_DELETE_TOPIC);
                 break;
-            case USStocks:
-                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_US_QUOTE_DELETE_TOPIC);
-                break;
-            case Crypto:
-                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.CRYPTO_QUOTE_DELETE_TOPIC);
 
         }
         StockerQuoteDeleteNotifier publisherToAll = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_ALL_QUOTE_DELETE_TOPIC);
