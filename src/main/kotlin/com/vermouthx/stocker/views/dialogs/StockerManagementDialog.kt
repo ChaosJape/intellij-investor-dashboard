@@ -37,9 +37,7 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
     override fun createCenterPanel(): DialogPanel {
         val tabbedPane = JBTabbedPane()
         tabbedPane.add("CN", createTabContent(0))
-        tabbedPane.add("HK", createTabContent(1))
-        tabbedPane.add("US", createTabContent(2))
-//        tabbedPane.add("Crypto", createTabContent(3))
+        tabbedPane.add("QH", createTabContent(1))
         tabbedPane.addChangeListener {
             currentMarketSelection = when (tabbedPane.selectedIndex) {
                 0 -> {
@@ -47,15 +45,8 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
                 }
 
                 1 -> {
-                    StockerMarketType.HKStocks
+                    StockerMarketType.QH
                 }
-
-                2 -> {
-                    StockerMarketType.USStocks
-                }
-//                3 -> {
-//                    StockerMarketType.Crypto
-//                }
                 else -> return@addChangeListener
             }
         }
@@ -71,26 +62,15 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
             renderTabPane(pane, aShareListModel)
         }
 
-        val hkStocksListModel = DefaultListModel<StockerQuote>()
-        hkStocksListModel.addAll(
+        val qHListModel = DefaultListModel<StockerQuote>()
+        qHListModel.addAll(
             StockerQuoteHttpUtil.get(
-                StockerMarketType.HKStocks, setting.quoteProvider, setting.hkStocksList
+                StockerMarketType.QH, setting.quoteProvider, setting.qhList
             )
         )
-        currentSymbols[StockerMarketType.HKStocks] = hkStocksListModel
+        currentSymbols[StockerMarketType.QH] = qHListModel
         tabMap[1]?.let { pane ->
-            renderTabPane(pane, hkStocksListModel)
-        }
-
-        val usStocksListModel = DefaultListModel<StockerQuote>()
-        usStocksListModel.addAll(
-            StockerQuoteHttpUtil.get(
-                StockerMarketType.USStocks, setting.quoteProvider, setting.usStocksList
-            )
-        )
-        currentSymbols[StockerMarketType.USStocks] = usStocksListModel
-        tabMap[2]?.let { pane ->
-            renderTabPane(pane, usStocksListModel)
+            renderTabPane(pane, qHListModel)
         }
 
         tabbedPane.selectedIndex = 0
@@ -111,11 +91,8 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
                         currentSymbols[StockerMarketType.AShare]?.let { symbols ->
                             setting.aShareList = symbols.elements().asSequence().map { it.code }.toMutableList()
                         }
-                        currentSymbols[StockerMarketType.HKStocks]?.let { symbols ->
-                            setting.hkStocksList = symbols.elements().asSequence().map { it.code }.toMutableList()
-                        }
-                        currentSymbols[StockerMarketType.USStocks]?.let { symbols ->
-                            setting.usStocksList = symbols.elements().asSequence().map { it.code }.toMutableList()
+                        currentSymbols[StockerMarketType.QH]?.let { symbols ->
+                            setting.qhList = symbols.elements().asSequence().map { it.code }.toMutableList()
                         }
                         myApplication.schedule()
                     }
