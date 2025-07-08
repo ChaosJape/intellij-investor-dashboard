@@ -37,28 +37,28 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
     override fun createCenterPanel(): DialogPanel {
         val tabbedPane = JBTabbedPane()
         tabbedPane.add("CN", createTabContent(0))
-        tabbedPane.add("HK", createTabContent(1))
-        tabbedPane.add("US", createTabContent(2))
+//        tabbedPane.add("HK", createTabContent(1))
+        tabbedPane.add("US", createTabContent(1))
 //        tabbedPane.add("Crypto", createTabContent(3))
-        tabbedPane.add("QH", createTabContent(3))
+        tabbedPane.add("QH", createTabContent(2))
         tabbedPane.addChangeListener {
             currentMarketSelection = when (tabbedPane.selectedIndex) {
                 0 -> {
                     StockerMarketType.AShare
                 }
 
-                1 -> {
-                    StockerMarketType.HKStocks
-                }
+//                1 -> {
+//                    StockerMarketType.HKStocks
+//                }
 
-                2 -> {
+                1 -> {
                     StockerMarketType.USStocks
                 }
 //                3 -> {
 //                    StockerMarketType.Crypto
 //                }
 
-                3 -> {
+                2 -> {
                     StockerMarketType.QH
                 }
                 else -> return@addChangeListener
@@ -76,16 +76,16 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
             renderTabPane(pane, aShareListModel)
         }
 
-        val hkStocksListModel = DefaultListModel<StockerQuote>()
-        hkStocksListModel.addAll(
-            StockerQuoteHttpUtil.get(
-                StockerMarketType.HKStocks, setting.quoteProvider, setting.hkStocksList
-            )
-        )
-        currentSymbols[StockerMarketType.HKStocks] = hkStocksListModel
-        tabMap[1]?.let { pane ->
-            renderTabPane(pane, hkStocksListModel)
-        }
+//        val hkStocksListModel = DefaultListModel<StockerQuote>()
+//        hkStocksListModel.addAll(
+//            StockerQuoteHttpUtil.get(
+//                StockerMarketType.HKStocks, setting.quoteProvider, setting.hkStocksList
+//            )
+//        )
+//        currentSymbols[StockerMarketType.HKStocks] = hkStocksListModel
+//        tabMap[1]?.let { pane ->
+//            renderTabPane(pane, hkStocksListModel)
+//        }
 
         val usStocksListModel = DefaultListModel<StockerQuote>()
         usStocksListModel.addAll(
@@ -94,7 +94,7 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
             )
         )
         currentSymbols[StockerMarketType.USStocks] = usStocksListModel
-        tabMap[2]?.let { pane ->
+        tabMap[1]?.let { pane ->
             renderTabPane(pane, usStocksListModel)
         }
 
@@ -105,7 +105,7 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
             )
         )
         currentSymbols[StockerMarketType.QH] = qHListModel
-        tabMap[3]?.let { pane ->
+        tabMap[2]?.let { pane ->
             renderTabPane(pane, qHListModel)
         }
 
@@ -127,9 +127,9 @@ class StockerManagementDialog(val project: Project?) : DialogWrapper(project) {
                         currentSymbols[StockerMarketType.AShare]?.let { symbols ->
                             setting.aShareList = symbols.elements().asSequence().map { it.code }.toMutableList()
                         }
-                        currentSymbols[StockerMarketType.HKStocks]?.let { symbols ->
-                            setting.hkStocksList = symbols.elements().asSequence().map { it.code }.toMutableList()
-                        }
+//                        currentSymbols[StockerMarketType.HKStocks]?.let { symbols ->
+//                            setting.hkStocksList = symbols.elements().asSequence().map { it.code }.toMutableList()
+//                        }
                         currentSymbols[StockerMarketType.USStocks]?.let { symbols ->
                             setting.usStocksList = symbols.elements().asSequence().map { it.code }.toMutableList()
                         }

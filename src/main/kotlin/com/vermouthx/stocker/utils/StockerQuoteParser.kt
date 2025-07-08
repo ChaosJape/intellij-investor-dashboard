@@ -55,33 +55,33 @@ object StockerQuoteParser {
                     )
                 }
 
-                StockerMarketType.HKStocks -> {
-                    val code = textArray[0].substring(2).uppercase()
-                    val name = textArray[2]
-                    val opening = textArray[3].toDouble()
-                    val close = textArray[4].toDouble()
-                    val high = textArray[5].toDouble()
-                    val low = textArray[6].toDouble()
-                    val current = textArray[7].toDouble()
-                    val change = (current - close).twoDigits()
-                    val percentage = textArray[9].toDouble().twoDigits()
-                    val sourceFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
-                    val targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    val datetime = LocalDateTime.parse(textArray[18] + " " + textArray[19], sourceFormatter)
-                    val updateAt = targetFormatter.format(datetime)
-                    StockerQuote(
-                        code = code,
-                        name = name,
-                        current = current,
-                        opening = opening,
-                        close = close,
-                        low = low,
-                        high = high,
-                        change = change,
-                        percentage = percentage,
-                        updateAt = updateAt
-                    )
-                }
+//                StockerMarketType.HKStocks -> {
+//                    val code = textArray[0].substring(2).uppercase()
+//                    val name = textArray[2]
+//                    val opening = textArray[3].toDouble()
+//                    val close = textArray[4].toDouble()
+//                    val high = textArray[5].toDouble()
+//                    val low = textArray[6].toDouble()
+//                    val current = textArray[7].toDouble()
+//                    val change = (current - close).twoDigits()
+//                    val percentage = textArray[9].toDouble().twoDigits()
+//                    val sourceFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+//                    val targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+//                    val datetime = LocalDateTime.parse(textArray[18] + " " + textArray[19], sourceFormatter)
+//                    val updateAt = targetFormatter.format(datetime)
+//                    StockerQuote(
+//                        code = code,
+//                        name = name,
+//                        current = current,
+//                        opening = opening,
+//                        close = close,
+//                        low = low,
+//                        high = high,
+//                        change = change,
+//                        percentage = percentage,
+//                        updateAt = updateAt
+//                    )
+//                }
 
                 StockerMarketType.USStocks -> {
                     val code = textArray[0].substring(3).uppercase()
@@ -163,7 +163,7 @@ object StockerQuoteParser {
         return responseText.split("\n").asSequence().filter { text -> text.isNotEmpty() }.map { text ->
             val code = when (marketType) {
                 StockerMarketType.AShare -> text.subSequence(2, text.indexOfFirst { c -> c == '=' })
-                StockerMarketType.HKStocks, StockerMarketType.USStocks -> text.subSequence(4,
+                StockerMarketType.USStocks -> text.subSequence(4,
                     text.indexOfFirst { c -> c == '=' })
 
                 StockerMarketType.Crypto -> ""
@@ -187,12 +187,12 @@ object StockerQuoteParser {
                     val datetime = LocalDateTime.parse(textArray[31], sourceFormatter)
                     targetFormatter.format(datetime)
                 }
-                StockerMarketType.HKStocks -> {
-                    val sourceFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-                    val targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    val datetime = LocalDateTime.parse(textArray[31], sourceFormatter)
-                    targetFormatter.format(datetime)
-                }
+//                StockerMarketType.HKStocks -> {
+//                    val sourceFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+//                    val targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+//                    val datetime = LocalDateTime.parse(textArray[31], sourceFormatter)
+//                    targetFormatter.format(datetime)
+//                }
 
                 StockerMarketType.USStocks -> textArray[31]
                 StockerMarketType.Crypto -> ""
