@@ -17,7 +17,7 @@ class StockerResetAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val setting = StockerSetting.instance
         setting.aShareList.clear()
-        setting.hkStocksList.clear()
+//        setting.hkStocksList.clear()
         setting.usStocksList.clear()
     }
 

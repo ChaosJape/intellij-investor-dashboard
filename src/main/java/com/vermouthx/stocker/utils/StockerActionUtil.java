@@ -19,8 +19,8 @@ public class StockerActionUtil {
                 switch (market) {
                     case AShare:
                         return setting.getAShareList().add(code);
-                    case HKStocks:
-                        return setting.getHkStocksList().add(code);
+//                    case HKStocks:
+//                        return setting.getHkStocksList().add(code);
                     case USStocks:
                         return setting.getUsStocksList().add(code);
                     case Crypto:
@@ -48,9 +48,9 @@ public class StockerActionUtil {
             case AShare:
                 publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_CN_QUOTE_DELETE_TOPIC);
                 break;
-            case HKStocks:
-                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_HK_QUOTE_DELETE_TOPIC);
-                break;
+//            case HKStocks:
+//                publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_HK_QUOTE_DELETE_TOPIC);
+//                break;
             case USStocks:
                 publisher = messageBus.syncPublisher(StockerQuoteDeleteNotifier.STOCK_US_QUOTE_DELETE_TOPIC);
                 break;

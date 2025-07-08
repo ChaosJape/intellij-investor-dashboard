@@ -203,7 +203,7 @@ object StockerSuggestHttpUtil {
                         )
                     }
                 }
-                "31" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.HKStocks))
+//                "31" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.HKStocks))
                 "41" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.USStocks))
                 "71" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.Crypto))
                 "81" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.AShare))
@@ -232,7 +232,7 @@ object StockerSuggestHttpUtil {
                 "sz", "sh" -> result.add(StockerSuggestion(type.uppercase() + code, name, StockerMarketType.AShare))
 
 
-                "hk" -> result.add(StockerSuggestion(code, name, StockerMarketType.HKStocks))
+//                "hk" -> result.add(StockerSuggestion(code, name, StockerMarketType.HKStocks))
 
                 "us" -> result.add(StockerSuggestion(code.split(".")[0].uppercase(), name, StockerMarketType.USStocks))
 
