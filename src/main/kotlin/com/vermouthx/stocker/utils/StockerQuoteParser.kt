@@ -133,27 +133,55 @@ object StockerQuoteParser {
                 }
 
                 StockerMarketType.QH -> {
-                    val code = textArray[0].substring(3).uppercase()
-                    val name = textArray[1]
-                    val current = textArray[9].toDouble()
-                    val low = textArray[5].toDouble()
-                    val high = textArray[4].toDouble()
-                    val opening = textArray[11].toDouble()
-                    val change = (current - opening).twoDigits()
-                    val percentage = ((current - opening) / opening * 100).twoDigits()
-                    val updateAt = "${textArray[18]} ${textArray[1]}"
-                    StockerQuote(
-                        code = code,
-                        name = name,
-                        current = current,
-                        opening = opening,
-                        close = current,
-                        low = low,
-                        high = high,
-                        change = change,
-                        percentage = percentage,
-                        updateAt = updateAt
-                    )
+                    if (textArray[0].startsWith("hf_")) {
+                        // 新浪国际贵金属(伦敦金/伦敦银), 如 hf_XAU, 字段格式与国内期货 nf_ 不同
+                        val code = StockerQuoteHttpUtil.sinaIntlMetalCodeMap.entries
+                            .firstOrNull { it.value == textArray[0] }?.key
+                            ?: textArray[0].removePrefix("hf_").uppercase() + "USD"
+                        val name = textArray[14]
+                        val current = textArray[1].toDouble()
+                        val close = textArray[2].toDouble()
+                        val opening = textArray[9].toDouble() // 注意: 索引 4 是买价, 开盘价在索引 9
+                        val high = textArray[5].toDouble()
+                        val low = textArray[6].toDouble()
+                        val change = (current - close).twoDigits()
+                        val percentage = ((current - close) / close * 100).twoDigits()
+                        val updateAt = "${textArray[13]} ${textArray[7]}"
+                        StockerQuote(
+                            code = code,
+                            name = name,
+                            current = current,
+                            opening = opening,
+                            close = close,
+                            low = low,
+                            high = high,
+                            change = change,
+                            percentage = percentage,
+                            updateAt = updateAt
+                        )
+                    } else {
+                        val code = textArray[0].substring(3).uppercase()
+                        val name = textArray[1]
+                        val current = textArray[9].toDouble()
+                        val low = textArray[5].toDouble()
+                        val high = textArray[4].toDouble()
+                        val opening = textArray[11].toDouble()
+                        val change = (current - opening).twoDigits()
+                        val percentage = ((current - opening) / opening * 100).twoDigits()
+                        val updateAt = "${textArray[18]} ${textArray[1]}"
+                        StockerQuote(
+                            code = code,
+                            name = name,
+                            current = current,
+                            opening = opening,
+                            close = current,
+                            low = low,
+                            high = high,
+                            change = change,
+                            percentage = percentage,
+                            updateAt = updateAt
+                        )
+                    }
                 }
             }
         }.toList()

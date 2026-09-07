@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>com.vermouthx.intellij-investor-dashboard</id>
-    <name>Stocker</name>
-    <vendor email="developer@nszihan.com" url="https://nszihan.com">Zihan Ma</vendor>
+    <id>com.vermouthx.intellij-investor-dashboard2</id>
+    <name>StockerChaos</name>
+    <vendor email="123@123.com" url="https://123.com">Chaos</vendor>
     <idea-version since-build="241"/>
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">

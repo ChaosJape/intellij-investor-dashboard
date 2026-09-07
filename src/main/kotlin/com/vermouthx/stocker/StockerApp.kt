@@ -46,13 +46,8 @@ class StockerApp {
         scheduledExecutorService.scheduleAtFixedRate(
             createAllQuoteUpdateThread(), scheduleInitialDelay, schedulePeriod, TimeUnit.SECONDS
         )
-
-        scheduledExecutorService.scheduleAtFixedRate(
-            createQuoteUpdateThread(StockerMarketType.QH, setting.qhList),
-            scheduleInitialDelay,
-            schedulePeriod,
-            TimeUnit.SECONDS
-        )
+        // QH 行情统一由 createAllQuoteUpdateThread 拉取并发布, 不再单独起 QH 轮询线程,
+        // 避免每个周期对 hq.sinajs.cn 重复请求(新浪 CDN 节点缓存不一致会交替返回陈旧快照)
     }
 
     fun shutdown() {
@@ -79,23 +74,35 @@ class StockerApp {
     private fun createAllQuoteUpdateThread(): Runnable {
         return Runnable {
             val quoteProvider = setting.quoteProvider
-            val allStockQuotes = listOf(
-                StockerQuoteHttpUtil.get(StockerMarketType.AShare, quoteProvider, setting.aShareList),
-//                StockerQuoteHttpUtil.get(StockerMarketType.HKStocks, quoteProvider, setting.hkStocksList),
-                StockerQuoteHttpUtil.get(StockerMarketType.USStocks, quoteProvider, setting.usStocksList),
-//                StockerQuoteHttpUtil.get(StockerMarketType.Crypto, quoteProvider, setting.cryptoList)
-                StockerQuoteHttpUtil.get(StockerMarketType.QH, quoteProvider, setting.qhList)
-            ).flatten()
-            val allStockIndices = listOf(
-                StockerQuoteHttpUtil.get(StockerMarketType.AShare, quoteProvider, StockerMarketIndex.CN.codes),
-//                StockerQuoteHttpUtil.get(StockerMarketType.HKStocks, quoteProvider, StockerMarketIndex.HK.codes),
-                StockerQuoteHttpUtil.get(StockerMarketType.USStocks, quoteProvider, StockerMarketIndex.US.codes),
-//                StockerQuoteHttpUtil.get(StockerMarketType.Crypto, quoteProvider, StockerMarketIndex.Crypto.codes)
-                StockerQuoteHttpUtil.get(StockerMarketType.QH, quoteProvider, StockerMarketIndex.QH.codes)
-            ).flatten()
-            val publisher = messageBus.syncPublisher(STOCK_ALL_QUOTE_UPDATE_TOPIC)
-            publisher.syncQuotes(allStockQuotes, setting.allStockListSize)
-            publisher.syncIndices(allStockIndices)
+            val aShareQuotes = StockerQuoteHttpUtil.get(
+                StockerMarketType.AShare, quoteProvider, setting.aShareList
+            )
+//            StockerQuoteHttpUtil.get(StockerMarketType.HKStocks, quoteProvider, setting.hkStocksList)
+            val usStockQuotes = StockerQuoteHttpUtil.get(
+                StockerMarketType.USStocks, quoteProvider, setting.usStocksList
+            )
+//            StockerQuoteHttpUtil.get(StockerMarketType.Crypto, quoteProvider, setting.cryptoList)
+            val qhQuotes = StockerQuoteHttpUtil.get(StockerMarketType.QH, quoteProvider, setting.qhList)
+            val allStockQuotes = listOf(aShareQuotes, usStockQuotes, qhQuotes).flatten()
+            val aShareIndices = StockerQuoteHttpUtil.get(
+                StockerMarketType.AShare, quoteProvider, StockerMarketIndex.CN.codes
+            )
+//            StockerQuoteHttpUtil.get(StockerMarketType.HKStocks, quoteProvider, StockerMarketIndex.HK.codes)
+            val usIndices = StockerQuoteHttpUtil.get(
+                StockerMarketType.USStocks, quoteProvider, StockerMarketIndex.US.codes
+            )
+//            StockerQuoteHttpUtil.get(StockerMarketType.Crypto, quoteProvider, StockerMarketIndex.Crypto.codes)
+            val qhIndices = StockerQuoteHttpUtil.get(StockerMarketType.QH, quoteProvider, StockerMarketIndex.QH.codes)
+            val allStockIndices = listOf(aShareIndices, usIndices, qhIndices).flatten()
+
+            // 全部页签
+            val allPublisher = messageBus.syncPublisher(STOCK_ALL_QUOTE_UPDATE_TOPIC)
+            allPublisher.syncQuotes(allStockQuotes, setting.allStockListSize)
+            allPublisher.syncIndices(allStockIndices)
+            // 期货页签复用同一份 QH 数据, 避免每个周期对 hq.sinajs.cn 重复请求
+            val qhPublisher = messageBus.syncPublisher(QH_QUOTE_UPDATE_TOPIC)
+            qhPublisher.syncQuotes(qhQuotes, setting.qhList.size)
+            qhPublisher.syncIndices(qhIndices)
         }
     }
 

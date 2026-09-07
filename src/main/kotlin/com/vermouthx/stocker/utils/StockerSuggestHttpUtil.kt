@@ -90,6 +90,12 @@ object StockerSuggestHttpUtil {
 //        Pair("二债", "TS")
 //    )
 
+    // 国际贵金属(现货黄金/白银): 新浪 hf_ 前缀, 只有连续合约, 没有月份合约
+    val intlMetalCodeMap = mapOf(
+        "XAUUSD" to "伦敦金",
+        "XAGUSD" to "伦敦银",
+    )
+
     // 汇总所有期货品种和代码
     private var futures: Map<String,String> = shfeFutures + shIneFutures + czceFutures + dceFutures
 
@@ -117,7 +123,8 @@ object StockerSuggestHttpUtil {
             val response = httpClientPool.execute(httpGet)
             when (provider) {
                 StockerQuoteProvider.SINA -> {
-                    val responseText = EntityUtils.toString(response.entity, "UTF-8")
+                    // Sina suggest 接口按 GB18030 返回, 用 UTF-8 解析中文名称会乱码
+                    val responseText = EntityUtils.toString(response.entity, "GB18030")
                     parseSinaSuggestion(responseText)
                 }
 
@@ -135,6 +142,14 @@ object StockerSuggestHttpUtil {
 
     private fun parseQhSuggestion(key: String) :List<StockerSuggestion> {
         val result = mutableListOf<StockerSuggestion>()
+        // 国际贵金属: 按代码或中文名匹配, 只返回连续合约, 不生成月份合约
+        val intlMetal = intlMetalCodeMap.entries.firstOrNull { entry ->
+            key.equals(entry.key, ignoreCase = true) || key == entry.value
+        }
+        if (intlMetal != null) {
+            result.add(StockerSuggestion(intlMetal.key, intlMetal.value, StockerMarketType.QH))
+            return result
+        }
         for (entry in futures) {
             if(key == entry.key){
                 var monthList = generateYearMonthList()
@@ -205,7 +220,15 @@ object StockerSuggestHttpUtil {
                 }
 //                "31" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.HKStocks))
                 "41" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.USStocks))
-                "71" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.Crypto))
+                "71" -> {
+                    val code = columns[3].uppercase()
+                    // 新浪把 XAUUSD/XAGUSD 也归为 type 71, 但它们不是加密货币, 应归入期货(国际贵金属)
+                    if (intlMetalCodeMap.containsKey(code)) {
+                        result.add(StockerSuggestion(code, intlMetalCodeMap[code]!!, StockerMarketType.QH))
+                    } else {
+                        result.add(StockerSuggestion(code, columns[4], StockerMarketType.Crypto))
+                    }
+                }
                 "81" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.AShare))
                 "87" -> result.add(StockerSuggestion(columns[3].uppercase(), columns[4], StockerMarketType.QH))
             }
